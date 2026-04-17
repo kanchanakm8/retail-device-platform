@@ -1,417 +1,1058 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Retail Device Platform API Explorer & Simulator</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Retail Device Platform API Explorer</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            background: #f4f6f8;
-        }
-
-        .container {
-            max-width: 1200px;
-            margin: 30px auto;
-            background: #ffffff;
-            padding: 24px;
-            border-radius: 12px;
-            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
-        }
-
-        h1 {
-            margin-top: 0;
-            color: #1f2937;
-        }
-
-        .section-title {
-            margin-top: 24px;
-            margin-bottom: 12px;
-            color: #111827;
-            font-size: 18px;
-            font-weight: bold;
-        }
-
-        .row {
-            display: flex;
-            gap: 20px;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
-        }
-
-        .field {
-            flex: 1;
-            min-width: 250px;
-        }
-
-        label {
-            display: block;
-            font-weight: bold;
-            margin-bottom: 8px;
-            color: #374151;
-        }
-
-        select, input, textarea, button {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #cbd5e1;
-            border-radius: 8px;
-            font-size: 14px;
+        * {
             box-sizing: border-box;
         }
 
-        textarea {
-            min-height: 260px;
-            resize: vertical;
-            font-family: monospace;
+        :root {
+            --bg: #f4f7fb;
+            --bg-soft: #eef3f9;
+            --surface: #ffffff;
+            --surface-2: #f8fbff;
+            --surface-3: #f3f7fc;
+            --border: #d8e2ee;
+            --border-strong: #c4d1df;
+            --text: #0f172a;
+            --text-soft: #475569;
+            --text-faint: #64748b;
+            --title: #0b1f3a;
+            --primary: #1d4ed8;
+            --primary-hover: #1e40af;
+            --primary-soft: #e8f0ff;
+            --success: #15803d;
+            --success-soft: #e8f7ed;
+            --danger: #b42318;
+            --danger-soft: #fdecec;
+            --warning: #b45309;
+            --warning-soft: #fff5e8;
+            --get: #15803d;
+            --post: #2563eb;
+            --shadow-sm: 0 6px 18px rgba(15, 23, 42, 0.05);
+            --shadow-md: 0 14px 35px rgba(15, 23, 42, 0.08);
+            --shadow-lg: 0 24px 50px rgba(15, 23, 42, 0.10);
+            --radius-xl: 24px;
+            --radius-lg: 18px;
+            --radius-md: 14px;
+            --radius-sm: 12px;
         }
 
-        .response-box {
-            background: #111827;
-            color: #f9fafb;
-            padding: 16px;
-            border-radius: 8px;
-            min-height: 240px;
-            white-space: pre-wrap;
-            overflow-x: auto;
-            font-family: monospace;
+        body {
+            margin: 0;
+            font-family: Inter, "Segoe UI", Roboto, Arial, sans-serif;
+            color: var(--text);
+            background:
+                radial-gradient(circle at top left, rgba(37, 99, 235, 0.08), transparent 22%),
+                radial-gradient(circle at top right, rgba(21, 128, 61, 0.04), transparent 18%),
+                linear-gradient(180deg, #f9fbfe 0%, #f4f7fb 40%, #edf2f8 100%);
+        }
+
+        .shell {
+            min-height: 100vh;
+        }
+
+        .topbar {
+            border-bottom: 1px solid rgba(216, 226, 238, 0.9);
+            background: linear-gradient(180deg, #ffffff 0%, #f7faff 100%);
+            backdrop-filter: blur(8px);
+        }
+
+        .topbar-inner {
+            max-width: 1520px;
+            margin: 0 auto;
+            padding: 26px 28px 22px;
+        }
+
+        .eyebrow {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--primary-soft);
+            color: var(--primary);
+            border: 1px solid #cfe0ff;
+            padding: 7px 12px;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 800;
+            letter-spacing: 0.3px;
+            margin-bottom: 14px;
+        }
+
+        .topbar h1 {
+            margin: 0;
+            font-size: 30px;
+            line-height: 1.2;
+            font-weight: 800;
+            color: var(--title);
+            letter-spacing: -0.3px;
+        }
+
+        .topbar p {
+            margin: 10px 0 0;
+            max-width: 980px;
+            color: var(--text-soft);
+            font-size: 14px;
+            line-height: 1.75;
+        }
+
+        .page {
+            max-width: 1520px;
+            margin: 0 auto;
+            padding: 24px 24px 32px;
+        }
+
+        .layout {
+            display: grid;
+            grid-template-columns: 320px minmax(0, 1fr);
+            gap: 22px;
+            align-items: start;
+        }
+
+        .sidebar,
+        .content-card,
+        .response-card {
+            background: rgba(255, 255, 255, 0.95);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-xl);
+            box-shadow: var(--shadow-md);
+        }
+
+        .sidebar {
+            position: sticky;
+            top: 18px;
+            overflow: hidden;
+        }
+
+        .sidebar-header {
+            padding: 20px 20px 16px;
+            border-bottom: 1px solid var(--border);
+            background: linear-gradient(180deg, #ffffff 0%, #f7fbff 100%);
+        }
+
+        .sidebar-header h2 {
+            margin: 0 0 6px;
+            font-size: 20px;
+            font-weight: 800;
+            color: var(--title);
+        }
+
+        .sidebar-header p {
+            margin: 0;
+            color: var(--text-faint);
+            font-size: 13px;
+            line-height: 1.65;
+        }
+
+        .endpoint-list {
+            padding: 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-height: calc(100vh - 170px);
+            overflow-y: auto;
+            background: linear-gradient(180deg, #ffffff 0%, #fbfdff 100%);
+        }
+
+        .endpoint-list::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .endpoint-list::-webkit-scrollbar-thumb {
+            background: #d7e2ee;
+            border-radius: 999px;
+        }
+
+        .endpoint-item {
+            border: 1px solid #e5edf6;
+            background: linear-gradient(180deg, #ffffff 0%, #fbfdff 100%);
+            border-radius: 16px;
+            padding: 14px 14px;
+            cursor: pointer;
+            transition: all 0.18s ease;
+        }
+
+        .endpoint-item:hover {
+            transform: translateY(-1px);
+            border-color: #bfd2e6;
+            background: linear-gradient(180deg, #fdfefe 0%, #f4f9ff 100%);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .endpoint-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 8px;
+        }
+
+        .mini-method {
+            min-width: 58px;
+            text-align: center;
+            color: #ffffff;
+            font-size: 11px;
+            font-weight: 800;
+            padding: 6px 8px;
+            border-radius: 999px;
+            letter-spacing: 0.4px;
+        }
+
+        .mini-method.get {
+            background: var(--get);
+        }
+
+        .mini-method.post {
+            background: var(--post);
+        }
+
+        .endpoint-name {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--title);
+        }
+
+        .endpoint-path {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+            font-size: 12px;
+            color: var(--text-faint);
+            line-height: 1.6;
+            word-break: break-word;
+        }
+
+        .main {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .content-card,
+        .response-card {
+            padding: 22px;
+        }
+
+        .hero-banner {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto;
+            gap: 16px;
+            align-items: center;
+            padding: 18px 18px;
+            border-radius: 18px;
+            margin-bottom: 20px;
+            border: 1px solid #d8e7ff;
+            background: linear-gradient(135deg, #f7fbff 0%, #edf5ff 55%, #f8fbff 100%);
+        }
+
+        .hero-banner h3 {
+            margin: 0 0 6px;
+            font-size: 16px;
+            font-weight: 800;
+            color: #12315d;
+        }
+
+        .hero-banner p {
+            margin: 0;
+            color: #4a6482;
+            font-size: 13px;
+            line-height: 1.7;
+        }
+
+        .hero-pill {
+            background: #ffffff;
+            color: var(--primary);
+            border: 1px solid #cfe0ff;
+            border-radius: 999px;
+            padding: 10px 14px;
+            font-size: 12px;
+            font-weight: 800;
+            white-space: nowrap;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .section-block {
+            border: 1px solid #e3ebf4;
+            border-radius: 20px;
+            padding: 18px;
+            background: linear-gradient(180deg, #ffffff 0%, #fbfdff 100%);
+        }
+
+        .section-title {
+            margin: 0 0 8px;
+            font-size: 18px;
+            line-height: 1.3;
+            font-weight: 800;
+            color: var(--title);
+        }
+
+        .section-subtitle {
+            margin: 0 0 16px;
+            color: var(--text-faint);
+            font-size: 13px;
+            line-height: 1.7;
+        }
+
+        .grid-3,
+        .grid-2 {
+            display: grid;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        .grid-3 {
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+
+        .grid-2 {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .field {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            min-width: 0;
+        }
+
+        .field label {
+            font-size: 12px;
+            font-weight: 800;
+            color: #334155;
+            letter-spacing: 0.2px;
+        }
+
+        select,
+        input,
+        textarea {
+            width: 100%;
+            border: 1px solid #cfdae6;
+            background: #ffffff;
+            color: var(--text);
+            border-radius: 14px;
+            padding: 12px 14px;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
+        }
+
+        select:hover,
+        input:hover,
+        textarea:hover {
+            border-color: #bccddd;
+            background: #ffffff;
+        }
+
+        select:focus,
+        input:focus,
+        textarea:focus {
+            border-color: #7ea8ff;
+            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.10);
+        }
+
+        textarea {
+            min-height: 220px;
+            resize: vertical;
+            line-height: 1.65;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+            background: #fcfdff;
+        }
+
+        .method-panel {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 12px;
+            min-height: 49px;
+            border-radius: 14px;
+            border: 1px solid var(--border);
+            background: linear-gradient(180deg, #f9fbfe 0%, #f4f8fc 100%);
         }
 
         .method-badge {
-            display: inline-block;
-            padding: 6px 10px;
-            border-radius: 6px;
-            font-weight: bold;
-            color: white;
-            margin-right: 10px;
+            min-width: 68px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 7px 12px;
+            color: #ffffff;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 800;
+            letter-spacing: 0.4px;
+            box-shadow: inset 0 -1px 0 rgba(255,255,255,0.15);
         }
 
-        .GET { background: #16a34a; }
-        .POST { background: #2563eb; }
+        .GET {
+            background: var(--get);
+        }
 
-        .info-box {
-            background: #eff6ff;
-            border: 1px solid #bfdbfe;
-            color: #1d4ed8;
-            padding: 12px;
-            border-radius: 8px;
-            margin-bottom: 20px;
+        .POST {
+            background: var(--post);
+        }
+
+        .method-helper-text {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--text-faint);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
 
         .url-box {
-            background: #f8fafc;
-            padding: 12px;
-            border-radius: 8px;
-            border: 1px solid #e2e8f0;
-            word-break: break-all;
+            min-height: 49px;
+            display: flex;
+            align-items: center;
+            border-radius: 14px;
+            border: 1px solid #d7e2ec;
+            padding: 13px 15px;
+            background: linear-gradient(180deg, #f9fbfe 0%, #f3f7fc 100%);
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+            font-size: 13px;
+            line-height: 1.55;
+            color: #10243e;
+            word-break: break-word;
+        }
+
+        .divider {
+            height: 1px;
+            margin: 18px 0;
+            background: linear-gradient(90deg, transparent, #d7e2ee, transparent);
+        }
+
+        .button-row {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-top: 4px;
         }
 
         button {
-            background: #111827;
-            color: white;
-            font-weight: bold;
+            border: none;
+            border-radius: 12px;
+            padding: 11px 18px;
+            font-size: 14px;
+            font-weight: 800;
+            letter-spacing: 0.2px;
             cursor: pointer;
+            transition: all 0.18s ease;
         }
 
         button:hover {
-            background: #1f2937;
+            transform: translateY(-1px);
         }
 
-        .button-secondary {
-            background: #475569;
+        .primary-btn {
+            color: #ffffff;
+            background: linear-gradient(135deg, var(--primary) 0%, #2563eb 60%, #3b82f6 100%);
+            box-shadow: 0 10px 22px rgba(37, 99, 235, 0.18);
         }
 
-        .button-secondary:hover {
-            background: #334155;
+        .primary-btn:hover {
+            background: linear-gradient(135deg, var(--primary-hover) 0%, #1d4ed8 60%, #2563eb 100%);
+        }
+
+        .secondary-btn {
+            color: #163150;
+            border: 1px solid #d6e0eb;
+            background: linear-gradient(180deg, #ffffff 0%, #f3f7fb 100%);
+        }
+
+        .secondary-btn:hover {
+            background: linear-gradient(180deg, #ffffff 0%, #edf4fb 100%);
+        }
+
+        .response-card {
+            background: linear-gradient(180deg, #ffffff 0%, #fbfdff 100%);
+        }
+
+        .response-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 14px;
+        }
+
+        .response-status {
+            padding: 8px 12px;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 800;
+            background: #e2e8f0;
+            color: #334155;
+            border: 1px solid transparent;
+        }
+
+        .response-box {
+            min-height: 240px;
+            border-radius: 18px;
+            padding: 18px;
+            border: 1px solid #dbe5ef;
+            background:
+                linear-gradient(180deg, rgba(255,255,255,0.92) 0%, rgba(246,249,252,0.95) 100%);
+            color: #13263d;
+            white-space: pre-wrap;
+            overflow-x: auto;
+            line-height: 1.68;
+            font-size: 13px;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+        }
+
+        .subtle-card {
+            margin-top: 16px;
+            padding: 14px 16px;
+            border-radius: 16px;
+            border: 1px solid #e4ebf3;
+            background: linear-gradient(180deg, #fcfdff 0%, #f7faff 100%);
+        }
+
+        .subtle-card strong {
+            display: block;
+            margin-bottom: 6px;
+            color: var(--title);
+            font-size: 13px;
+        }
+
+        .subtle-card span {
+            color: var(--text-faint);
+            font-size: 12px;
+            line-height: 1.6;
+        }
+
+        @media (max-width: 1120px) {
+            .layout {
+                grid-template-columns: 1fr;
+            }
+
+            .sidebar {
+                position: static;
+            }
+
+            .endpoint-list {
+                max-height: none;
+            }
+        }
+
+        @media (max-width: 860px) {
+            .grid-3,
+            .grid-2,
+            .hero-banner {
+                grid-template-columns: 1fr;
+            }
+
+            .page {
+                padding: 16px;
+            }
+
+            .content-card,
+            .response-card {
+                padding: 16px;
+            }
+
+            .topbar-inner {
+                padding: 20px 16px;
+            }
+
+            .topbar h1 {
+                font-size: 24px;
+            }
+
+            .hero-pill {
+                width: fit-content;
+            }
         }
     </style>
 </head>
 <body>
-<div class="container">
-    <h1>Retail Device Platform API Explorer & Simulator</h1>
-
-    <div class="info-box">
-        This page can act like a Swagger-style explorer and also as a device event simulator.
-        Choose a device, choose a scenario, auto-generate the event, and post it.
-    </div>
-
-    <div class="section-title">API Explorer</div>
-
-    <div class="row">
-        <div class="field">
-            <label for="serviceSelect">Select Service</label>
-            <select id="serviceSelect" onchange="loadEndpoints()">
-                <option value="ingestion">Ingestion Service</option>
-                <option value="inventory">Inventory Service</option>
-            </select>
+    <div class="shell">
+        <div class="topbar">
+            <div class="topbar-inner">
+                <div class="eyebrow">Enterprise API Workspace</div>
+                <h1>Retail Device Platform API Explorer</h1>
+                <p>
+                    Unified Swagger-style interface for validating ingestion and inventory workflows, simulating device events,
+                    testing service endpoints, and reviewing execution responses in a cleaner enterprise-grade experience.
+                </p>
+            </div>
         </div>
 
-        <div class="field">
-            <label for="endpointSelect">Select Endpoint</label>
-            <select id="endpointSelect" onchange="updateEndpointDetails()"></select>
-        </div>
+        <div class="page">
+            <div class="layout">
+                <aside class="sidebar">
+                    <div class="sidebar-header">
+                        <h2>Quick Endpoints</h2>
+                        <p>Navigate faster across ingestion and inventory APIs without changing any existing behavior.</p>
+                    </div>
+                    <div class="endpoint-list" id="quickEndpointList"></div>
+                </aside>
 
-        <div class="field">
-            <label>Method</label>
-            <div>
-                <span id="methodBadge" class="method-badge POST">POST</span>
+                <main class="main">
+                    <section class="content-card">
+                        <div class="hero-banner">
+                            <div>
+                                <h3>API Execution Console</h3>
+                                <p>
+                                    Select a service, switch endpoints, simulate RFID or IoT payloads, and submit requests
+                                    using the same underlying logic already present in your current page.
+                                </p>
+                            </div>
+                            <div class="hero-pill">Swagger-Style Workflow</div>
+                        </div>
+
+                        <div class="section-block">
+                            <h2 class="section-title">API Explorer</h2>
+                            <div class="section-subtitle">
+                                Select the target service, endpoint, method, and optional path variable before execution.
+                            </div>
+
+                            <div class="grid-3">
+                                <div class="field">
+                                    <label for="serviceSelect">Select Service</label>
+                                    <select id="serviceSelect" onchange="loadEndpoints()">
+                                        <option value="ingestion">Ingestion Service</option>
+                                        <option value="inventory">Inventory Service</option>
+                                    </select>
+                                </div>
+
+                                <div class="field">
+                                    <label for="endpointSelect">Select Endpoint</label>
+                                    <select id="endpointSelect" onchange="updateEndpointDetails()"></select>
+                                </div>
+
+                                <div class="field">
+                                    <label>Method</label>
+                                    <div class="method-panel">
+                                        <span id="methodBadge" class="method-badge POST">POST</span>
+                                        <span id="methodLabelText" class="method-helper-text">Selected API method</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="grid-2">
+                                <div class="field">
+                                    <label>Resolved URL</label>
+                                    <div id="urlBox" class="url-box"></div>
+                                </div>
+
+                                <div class="field">
+                                    <label for="pathParamInput">Path Variable (if needed)</label>
+                                    <input
+                                        type="text"
+                                        id="pathParamInput"
+                                        placeholder="Enter eventId if needed"
+                                        oninput="updateUrlPreview()"
+                                    />
+                                </div>
+                            </div>
+
+                            <div id="simulatorSection">
+                                <div class="divider"></div>
+
+                                <h2 class="section-title">Dynamic Event Simulator</h2>
+                                <div class="section-subtitle">
+                                    Generate device-specific payloads for RFID and IoT scenarios, including controlled success or failure simulation.
+                                </div>
+
+                                <div class="grid-3">
+                                    <div class="field">
+                                        <label for="deviceTypeSelect">Select Device Type</label>
+                                        <select id="deviceTypeSelect" onchange="generateDevicePayload()">
+                                            <option value="RFID">RFID</option>
+                                            <option value="IOT_DEVICE">IOT_DEVICE</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="field">
+                                        <label for="scenarioSelect">Select Scenario</label>
+                                        <select id="scenarioSelect" onchange="generateDevicePayload()">
+                                            <option value="SUCCESS">SUCCESS</option>
+                                            <option value="FAILURE">FAILURE</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="field">
+                                        <label for="sampleIdInput">Sample Device/Event Suffix</label>
+                                        <input
+                                            type="text"
+                                            id="sampleIdInput"
+                                            value="1001"
+                                            oninput="generateDevicePayload()"
+                                            placeholder="Enter suffix like 1001"
+                                        />
+                                    </div>
+                                </div>
+
+                                <div class="field" style="margin-bottom:18px;">
+                                    <label for="requestBody">Request Body</label>
+                                    <textarea id="requestBody"></textarea>
+                                </div>
+
+                                <div class="button-row">
+                                    <button class="secondary-btn" onclick="generateDevicePayload()">Generate Dynamic Payload</button>
+                                    <button class="primary-btn" onclick="sendRequest()">Send Request</button>
+                                </div>
+                            </div>
+
+                            <div id="genericRequestSection">
+                                <div class="divider"></div>
+
+                                <h2 class="section-title">Request Payload</h2>
+                                <div class="section-subtitle">
+                                    Use this section for POST APIs that do not use the device simulator.
+                                </div>
+
+                                <div class="field" style="margin-bottom:18px;">
+                                    <label for="requestBodyGeneric">Request Body</label>
+                                    <textarea id="requestBodyGeneric" placeholder="Enter request body..."></textarea>
+                                </div>
+
+                                <div class="button-row">
+                                    <button class="primary-btn" onclick="sendRequest()">Send Request</button>
+                                </div>
+                            </div>
+
+                            <div id="actionOnlySection">
+                                <div class="divider"></div>
+
+                                <div class="subtle-card">
+                                    <strong>Direct Execution</strong>
+                                    <span>This endpoint does not require a request body. Execute directly using the button below.</span>
+                                </div>
+
+                                <div class="button-row" style="margin-top:16px;">
+                                    <button class="primary-btn" onclick="sendRequest()">Send Request</button>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section class="response-card">
+                        <div class="response-header">
+                            <div>
+                                <h2 class="section-title" style="margin-bottom:4px;">Response</h2>
+                                <div class="section-subtitle" style="margin:0;">
+                                    Execution result for the selected endpoint request
+                                </div>
+                            </div>
+                            <div id="responseStatus" class="response-status">Awaiting Request</div>
+                        </div>
+
+                        <div id="responseBox" class="response-box">Response will appear here...</div>
+                    </section>
+                </main>
             </div>
         </div>
     </div>
 
-    <div class="row">
-        <div class="field">
-            <label>URL</label>
-            <div id="urlBox" class="url-box"></div>
-        </div>
-
-        <div class="field">
-            <label for="pathParamInput">Path Variable (if needed)</label>
-            <input type="text" id="pathParamInput" placeholder="Enter eventId if needed" oninput="updateUrlPreview()">
-        </div>
-    </div>
-
-    <div class="section-title">Dynamic Event Simulator</div>
-
-    <div class="row">
-        <div class="field">
-            <label for="deviceTypeSelect">Select Device Type</label>
-            <select id="deviceTypeSelect" onchange="generateDevicePayload()">
-                <option value="RFID">RFID</option>
-                <option value="IOT_DEVICE">IOT_DEVICE</option>
-            </select>
-        </div>
-
-        <div class="field">
-            <label for="scenarioSelect">Select Scenario</label>
-            <select id="scenarioSelect" onchange="generateDevicePayload()">
-                <option value="SUCCESS">SUCCESS</option>
-                <option value="FAILURE">FAILURE</option>
-            </select>
-        </div>
-
-        <div class="field">
-            <label for="sampleIdInput">Sample Device/Event Suffix</label>
-            <input type="text" id="sampleIdInput" value="1001" oninput="generateDevicePayload()" placeholder="Enter suffix like 1001">
-        </div>
-    </div>
-
-    <div class="row">
-        <div class="field">
-            <button class="button-secondary" onclick="generateDevicePayload()">Generate Dynamic Payload</button>
-        </div>
-    </div>
-
-    <div class="row">
-        <div class="field">
-            <label for="requestBody">Request Body</label>
-            <textarea id="requestBody"></textarea>
-        </div>
-    </div>
-
-    <div class="row">
-        <div class="field">
-            <button onclick="sendRequest()">Send Request</button>
-        </div>
-    </div>
-
-    <div class="row">
-        <div class="field">
-            <label for="responseBox">Response</label>
-            <div id="responseBox" class="response-box">Response will appear here...</div>
-        </div>
-    </div>
-</div>
-
-<script>
-    const services = {
-        ingestion: {
-            baseUrl: "http://localhost:8080",
-            endpoints: [
-                { name: "Health", method: "GET", path: "/api/events/health", sampleBody: "" },
-                { name: "Publish Device Event", method: "POST", path: "/api/events", sampleBody: "" },
-                { name: "Get All DLQ Events", method: "GET", path: "/api/dlq", sampleBody: "" },
-                { name: "Get DLQ Event By ID", method: "GET", path: "/api/dlq/{eventId}", sampleBody: "" },
-                { name: "Reprocess DLQ Event", method: "POST", path: "/api/dlq/{eventId}/reprocess", sampleBody: "" },
-                { name: "Actuator Health", method: "GET", path: "/actuator/health", sampleBody: "" }
-            ]
-        },
-        inventory: {
-            baseUrl: "http://localhost:8081",
-            endpoints: [
-                { name: "Health", method: "GET", path: "/inventory/health", sampleBody: "" },
-                { name: "Get All Events", method: "GET", path: "/inventory/events", sampleBody: "" },
-                { name: "Get Event By ID", method: "GET", path: "/inventory/events/{eventId}", sampleBody: "" },
-                { name: "Metrics", method: "GET", path: "/inventory/metrics", sampleBody: "" },
-                { name: "Actuator Health", method: "GET", path: "/actuator/health", sampleBody: "" }
-            ]
-        }
-    };
-
-    function loadEndpoints() {
-        const serviceKey = document.getElementById("serviceSelect").value;
-        const endpointSelect = document.getElementById("endpointSelect");
-        endpointSelect.innerHTML = "";
-
-        services[serviceKey].endpoints.forEach((endpoint, index) => {
-            const option = document.createElement("option");
-            option.value = index;
-            option.text = endpoint.name;
-            endpointSelect.appendChild(option);
-        });
-
-        updateEndpointDetails();
-    }
-
-    function updateEndpointDetails() {
-        const serviceKey = document.getElementById("serviceSelect").value;
-        const endpointIndex = document.getElementById("endpointSelect").value;
-        const endpoint = services[serviceKey].endpoints[endpointIndex];
-
-        const methodBadge = document.getElementById("methodBadge");
-        methodBadge.textContent = endpoint.method;
-        methodBadge.className = "method-badge " + endpoint.method;
-
-        if (endpoint.name === "Publish Device Event") {
-            generateDevicePayload();
-        } else {
-            document.getElementById("requestBody").value = endpoint.sampleBody || "";
-        }
-
-        updateUrlPreview();
-    }
-
-    function updateUrlPreview() {
-        const serviceKey = document.getElementById("serviceSelect").value;
-        const endpointIndex = document.getElementById("endpointSelect").value;
-        const endpoint = services[serviceKey].endpoints[endpointIndex];
-        const pathParam = document.getElementById("pathParamInput").value.trim();
-
-        let finalPath = endpoint.path;
-        if (finalPath.includes("{eventId}")) {
-            finalPath = finalPath.replace("{eventId}", pathParam || "{eventId}");
-        }
-
-        document.getElementById("urlBox").textContent = services[serviceKey].baseUrl + finalPath;
-    }
-
-    function generateDevicePayload() {
-        const serviceKey = document.getElementById("serviceSelect").value;
-        const endpointIndex = document.getElementById("endpointSelect").value;
-        const endpoint = services[serviceKey].endpoints[endpointIndex];
-
-        if (serviceKey !== "ingestion" || endpoint.name !== "Publish Device Event") {
-            return;
-        }
-
-        const deviceType = document.getElementById("deviceTypeSelect").value;
-        const scenario = document.getElementById("scenarioSelect").value;
-        const suffix = document.getElementById("sampleIdInput").value.trim() || "1001";
-        const simulateFailure = scenario === "FAILURE";
-
-        let payloadObject;
-
-        if (deviceType === "RFID") {
-            payloadObject = {
-                vendorType: "RFID",
-                payload: {
-                    tagId: "TAG-" + suffix,
-                    epc: "EPC-" + suffix,
-                    readerId: "READER-" + suffix,
-                    zone: "ENTRANCE",
-                    eventType: "RFID_SCAN",
-                    antennaPort: 1,
-                    readCount: 2,
-                    rssi: -48.5,
-                    timestamp: new Date().toISOString(),
-                    location: {
-                        storeId: "STORE-101",
-                        aisle: "A1"
-                    },
-                    simulateFailure: simulateFailure
-                }
-            };
-        } else if (deviceType === "IOT_DEVICE") {
-            payloadObject = {
-                vendorType: "IOT_DEVICE",
-                payload: {
-                    deviceId: "DEVICE-" + suffix,
-                    deviceType: "TEMP_SENSOR",
-                    deviceModel: "TS-900",
-                    firmwareVersion: "1.0.2",
-                    connectivityStatus: "ONLINE",
-                    eventType: "DEVICE_HEARTBEAT",
-                    siteId: "SITE-01",
-                    zone: "COLD_STORAGE",
-                    ipAddress: "192.168.1.10",
-                    macAddress: "AA:BB:CC:DD:EE:" + suffix.slice(-2),
-                    batteryLevel: 85,
-                    signalStrength: -60.0,
-                    timestamp: new Date().toISOString(),
-                    metrics: {
-                        temperature: 5.2,
-                        humidity: 60
-                    },
-                    simulateFailure: simulateFailure
-                }
-            };
-        }
-
-        document.getElementById("requestBody").value = JSON.stringify(payloadObject, null, 2);
-    }
-
-    async function sendRequest() {
-        const serviceKey = document.getElementById("serviceSelect").value;
-        const endpointIndex = document.getElementById("endpointSelect").value;
-        const endpoint = services[serviceKey].endpoints[endpointIndex];
-        const pathParam = document.getElementById("pathParamInput").value.trim();
-        const responseBox = document.getElementById("responseBox");
-
-        let finalPath = endpoint.path;
-        if (finalPath.includes("{eventId}")) {
-            if (!pathParam) {
-                responseBox.textContent = "Please enter eventId in the Path Variable field.";
-                return;
-            }
-            finalPath = finalPath.replace("{eventId}", pathParam);
-        }
-
-        const url = services[serviceKey].baseUrl + finalPath;
-
-        const options = {
-            method: endpoint.method,
-            headers: {
-                "Content-Type": "application/json"
+    <script>
+        const services = {
+            ingestion: {
+                baseUrl: "http://localhost:8080",
+                endpoints: [
+                    { name: "Health", method: "GET", path: "/api/events/health", sampleBody: "" },
+                    { name: "Publish Device Event", method: "POST", path: "/api/events", sampleBody: "" },
+                    { name: "Get All DLQ Events", method: "GET", path: "/api/dlq", sampleBody: "" },
+                    { name: "Get DLQ Event By ID", method: "GET", path: "/api/dlq/{eventId}", sampleBody: "" },
+                    { name: "Reprocess DLQ Event", method: "POST", path: "/api/dlq/{eventId}/reprocess", sampleBody: "" },
+                    { name: "Publisher Metrics", method: "GET", path: "/publisher/metrics", sampleBody: "" },
+                    { name: "Actuator Health", method: "GET", path: "/actuator/health", sampleBody: "" }
+                ]
+            },
+            inventory: {
+                baseUrl: "http://localhost:8081",
+                endpoints: [
+                    { name: "Health", method: "GET", path: "/inventory/health", sampleBody: "" },
+                    { name: "Get All Events", method: "GET", path: "/inventory/events", sampleBody: "" },
+                    { name: "Get Event By ID", method: "GET", path: "/inventory/events/{eventId}", sampleBody: "" },
+                    { name: "Metrics", method: "GET", path: "/inventory/metrics", sampleBody: "" },
+                    { name: "Actuator Health", method: "GET", path: "/actuator/health", sampleBody: "" }
+                ]
             }
         };
 
-        if (endpoint.method === "POST") {
-            const requestBody = document.getElementById("requestBody").value.trim();
-            if (requestBody) {
-                options.body = requestBody;
+        function buildQuickEndpointList() {
+            const container = document.getElementById("quickEndpointList");
+            container.innerHTML = "";
+
+            Object.keys(services).forEach(serviceKey => {
+                services[serviceKey].endpoints.forEach((endpoint, index) => {
+                    const item = document.createElement("div");
+                    item.className = "endpoint-item";
+                    item.onclick = () => selectQuickEndpoint(serviceKey, index);
+
+                    item.innerHTML = `
+                        <div class="endpoint-row">
+                            <span class="mini-method ${endpoint.method.toLowerCase()}">${endpoint.method}</span>
+                            <span class="endpoint-name">${endpoint.name}</span>
+                        </div>
+                        <div class="endpoint-path">${services[serviceKey].baseUrl}${endpoint.path}</div>
+                    `;
+
+                    container.appendChild(item);
+                });
+            });
+        }
+
+        function selectQuickEndpoint(serviceKey, endpointIndex) {
+            document.getElementById("serviceSelect").value = serviceKey;
+            loadEndpoints();
+            document.getElementById("endpointSelect").value = endpointIndex;
+            updateEndpointDetails();
+        }
+
+        function loadEndpoints() {
+            const serviceKey = document.getElementById("serviceSelect").value;
+            const endpointSelect = document.getElementById("endpointSelect");
+            endpointSelect.innerHTML = "";
+
+            services[serviceKey].endpoints.forEach((endpoint, index) => {
+                const option = document.createElement("option");
+                option.value = index;
+                option.text = endpoint.name;
+                endpointSelect.appendChild(option);
+            });
+
+            updateEndpointDetails();
+        }
+
+        function getSelectedEndpoint() {
+            const serviceKey = document.getElementById("serviceSelect").value;
+            const endpointIndex = document.getElementById("endpointSelect").value;
+            return {
+                serviceKey,
+                endpoint: services[serviceKey].endpoints[endpointIndex]
+            };
+        }
+
+        function isPublishDeviceEventSelected() {
+            const selected = getSelectedEndpoint();
+            return selected.serviceKey === "ingestion" && selected.endpoint.path === "/api/events";
+        }
+
+        function isPostMethodSelected() {
+            const selected = getSelectedEndpoint();
+            return selected.endpoint.method === "POST";
+        }
+
+        function updateEndpointDetails() {
+            const selected = getSelectedEndpoint();
+            const endpoint = selected.endpoint;
+
+            const methodBadge = document.getElementById("methodBadge");
+            methodBadge.textContent = endpoint.method;
+            methodBadge.className = "method-badge " + endpoint.method;
+
+            document.getElementById("methodLabelText").textContent = endpoint.name;
+
+            if (endpoint.method === "POST" && !isPublishDeviceEventSelected()) {
+                document.getElementById("requestBodyGeneric").value = endpoint.sampleBody || "";
+            }
+
+            updateUrlPreview();
+            toggleRequestSections();
+        }
+
+        function updateUrlPreview() {
+            const selected = getSelectedEndpoint();
+            const endpoint = selected.endpoint;
+            const pathParam = document.getElementById("pathParamInput").value.trim();
+
+            let finalPath = endpoint.path;
+            if (finalPath.includes("{eventId}")) {
+                finalPath = finalPath.replace("{eventId}", pathParam || "{eventId}");
+            }
+
+            document.getElementById("urlBox").textContent = services[selected.serviceKey].baseUrl + finalPath;
+        }
+
+        function toggleRequestSections() {
+            const simulatorSection = document.getElementById("simulatorSection");
+            const genericRequestSection = document.getElementById("genericRequestSection");
+            const actionOnlySection = document.getElementById("actionOnlySection");
+
+            const postSelected = isPostMethodSelected();
+            const publishEventSelected = isPublishDeviceEventSelected();
+
+            simulatorSection.style.display = "none";
+            genericRequestSection.style.display = "none";
+            actionOnlySection.style.display = "none";
+
+            if (!postSelected) {
+                actionOnlySection.style.display = "block";
+                return;
+            }
+
+            if (publishEventSelected) {
+                simulatorSection.style.display = "block";
+                generateDevicePayload();
+            } else {
+                genericRequestSection.style.display = "block";
             }
         }
 
-        try {
-            const response = await fetch(url, options);
-            const text = await response.text();
+        function generateDevicePayload() {
+            const selected = getSelectedEndpoint();
+            const endpoint = selected.endpoint;
 
-            let formattedResponse = text;
+            if (selected.serviceKey !== "ingestion" || endpoint.name !== "Publish Device Event") {
+                return;
+            }
+
+            const deviceType = document.getElementById("deviceTypeSelect").value;
+            const scenario = document.getElementById("scenarioSelect").value;
+            const suffix = document.getElementById("sampleIdInput").value.trim() || "1001";
+            const simulateFailure = scenario === "FAILURE";
+
+            let payloadObject;
+
+            if (deviceType === "RFID") {
+                payloadObject = {
+                    vendorType: "RFID",
+                    payload: {
+                        tagId: "TAG-" + suffix,
+                        epc: "EPC-" + suffix,
+                        readerId: "READER-" + suffix,
+                        zone: "ENTRANCE",
+                        eventType: "RFID_SCAN",
+                        antennaPort: 1,
+                        readCount: 2,
+                        rssi: -48.5,
+                        timestamp: new Date().toISOString(),
+                        location: {
+                            storeId: "STORE-101",
+                            aisle: "A1"
+                        },
+                        simulateFailure: simulateFailure
+                    }
+                };
+            } else if (deviceType === "IOT_DEVICE") {
+                payloadObject = {
+                    vendorType: "IOT_DEVICE",
+                    payload: {
+                        deviceId: "DEVICE-" + suffix,
+                        deviceType: "TEMP_SENSOR",
+                        deviceModel: "TS-900",
+                        firmwareVersion: "1.0.2",
+                        connectivityStatus: "ONLINE",
+                        eventType: "DEVICE_HEARTBEAT",
+                        siteId: "SITE-01",
+                        zone: "COLD_STORAGE",
+                        ipAddress: "192.168.1.10",
+                        macAddress: "AA:BB:CC:DD:EE:" + suffix.slice(-2),
+                        batteryLevel: 85,
+                        signalStrength: -60.0,
+                        timestamp: new Date().toISOString(),
+                        metrics: {
+                            temperature: 5.2,
+                            humidity: 60
+                        },
+                        simulateFailure: simulateFailure
+                    }
+                };
+            }
+
+            document.getElementById("requestBody").value = JSON.stringify(payloadObject, null, 2);
+        }
+
+        function incrementSampleSuffix() {
+            const input = document.getElementById("sampleIdInput");
+            const currentValue = (input.value || "").trim();
+
+            if (/^\d+$/.test(currentValue)) {
+                input.value = String(Number(currentValue) + 1);
+            } else {
+                input.value = "1002";
+            }
+        }
+
+        async function sendRequest() {
+            const selected = getSelectedEndpoint();
+            const serviceKey = selected.serviceKey;
+            const endpoint = selected.endpoint;
+            const pathParam = document.getElementById("pathParamInput").value.trim();
+            const responseBox = document.getElementById("responseBox");
+            const responseStatus = document.getElementById("responseStatus");
+
+            let finalPath = endpoint.path;
+            if (finalPath.includes("{eventId}")) {
+                if (!pathParam) {
+                    responseStatus.textContent = "Validation Error";
+                    responseStatus.style.background = "#fee2e2";
+                    responseStatus.style.color = "#991b1b";
+                    responseBox.textContent = "Please enter eventId in the Path Variable field.";
+                    return;
+                }
+                finalPath = finalPath.replace("{eventId}", pathParam);
+            }
+
+            const url = services[serviceKey].baseUrl + finalPath;
+
+            const options = {
+                method: endpoint.method,
+                headers: {
+                    "Content-Type": "application/json"
+                }
+            };
+
+            if (endpoint.method === "POST") {
+                let requestBody = "";
+
+                if (isPublishDeviceEventSelected()) {
+                    requestBody = document.getElementById("requestBody").value.trim();
+                } else {
+                    requestBody = document.getElementById("requestBodyGeneric").value.trim();
+                }
+
+                if (requestBody) {
+                    options.body = requestBody;
+                }
+            }
+
+            responseStatus.textContent = "Executing...";
+            responseStatus.style.background = "#dbeafe";
+            responseStatus.style.color = "#1d4ed8";
+            responseBox.textContent = "Sending request to:\n" + url + "\n\nPlease wait...";
+
             try {
-                formattedResponse = JSON.stringify(JSON.parse(text), null, 2);
-            } catch (e) {
-                // keep raw text
+                const response = await fetch(url, options);
+                const text = await response.text();
+
+                let formattedResponse = text;
+                try {
+                    formattedResponse = JSON.stringify(JSON.parse(text), null, 2);
+                } catch (e) {
+                    // keep raw text
+                }
+
+                responseStatus.textContent = "HTTP " + response.status;
+                responseStatus.style.background = response.ok ? "#dcfce7" : "#fee2e2";
+                responseStatus.style.color = response.ok ? "#166534" : "#991b1b";
+
+                responseBox.textContent =
+                    "HTTP Status: " + response.status +
+                    "\nURL: " + url +
+                    "\nMethod: " + endpoint.method +
+                    "\n\n" + formattedResponse;
+
+                if (response.ok && isPublishDeviceEventSelected()) {
+                    incrementSampleSuffix();
+                    generateDevicePayload();
+                }
+
+            } catch (error) {
+                responseStatus.textContent = "Request Failed";
+                responseStatus.style.background = "#fee2e2";
+                responseStatus.style.color = "#991b1b";
+                responseBox.textContent = "Request failed:\n\n" + error;
             }
-
-            responseBox.textContent = "HTTP Status: " + response.status + "\n\n" + formattedResponse;
-        } catch (error) {
-            responseBox.textContent = "Request failed:\n\n" + error;
         }
-    }
 
-    loadEndpoints();
-</script>
+        buildQuickEndpointList();
+        loadEndpoints();
+        toggleRequestSections();
+    </script>
 </body>
 </html>

@@ -20,6 +20,10 @@ public class RestEventPublisher implements EventPublisher {
     private final int failureThreshold = 3;
     private long circuitOpenUntil = 0;
     private final long openDurationMillis = 30000;
+    
+    private int publishedSuccessCount = 0;
+    private int publishedFailureCount = 0;
+    private int dlqCount = 0;
 
     // Retry fields
     private final int maxRetries = 3;
@@ -64,11 +68,12 @@ public class RestEventPublisher implements EventPublisher {
 
                 if (Boolean.TRUE.equals(simulateFailure)) {
                     log.warn("Simulating publish failure for eventId={}", event.getEventId());
+                    
                     throw new RuntimeException("Simulated downstream failure for testing");
                 }
 
                 restTemplate.postForObject(inventoryServiceProcessUrl, event, String.class);
-
+                publishedSuccessCount++;
                 log.info("Successfully published eventId={}", event.getEventId());
 
                 resetCircuitBreaker();
@@ -114,8 +119,9 @@ public class RestEventPublisher implements EventPublisher {
         if (lastException != null && lastException.getMessage() != null) {
             reason = lastException.getMessage();
         }
-
+        publishedFailureCount++;
         sendToDeadLetterQueue(event, reason);
+        throw new RuntimeException("Event moved to DLQ after retry exhaustion: " + event.getEventId());
     }
 
     private void sendToDeadLetterQueue(CommonEvent event, String reason) {
@@ -126,7 +132,7 @@ public class RestEventPublisher implements EventPublisher {
         dlq.setFailedAt(LocalDateTime.now());
 
         dlqRepository.save(dlq);
-
+        dlqCount++;
         log.error("Event moved to DLQ: eventId={}, reason={}", event.getEventId(), reason);
     }
 
@@ -136,5 +142,17 @@ public class RestEventPublisher implements EventPublisher {
         } catch (Exception e) {
             throw new RuntimeException("Failed to convert object to JSON", e);
         }
+    }
+    
+    public int getPublishedSuccessCount() {
+        return publishedSuccessCount;
+    }
+
+    public int getPublishedFailureCount() {
+        return publishedFailureCount;
+    }
+
+    public int getDlqCount() {
+        return dlqCount;
     }
 }

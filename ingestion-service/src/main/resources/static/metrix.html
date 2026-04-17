@@ -1,0 +1,822 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Retail Device Platform - Operations Dashboard</title>
+    <style>
+        * { box-sizing: border-box; }
+
+        :root {
+            --bg: #0b1220;
+            --panel: rgba(15, 23, 42, 0.88);
+            --panel-2: rgba(30, 41, 59, 0.88);
+            --border: rgba(148, 163, 184, 0.16);
+            --text: #e5eefb;
+            --muted: #94a3b8;
+            --green: #22c55e;
+            --red: #ef4444;
+            --amber: #f59e0b;
+            --blue: #38bdf8;
+            --violet: #8b5cf6;
+            --shadow: 0 18px 50px rgba(2, 6, 23, 0.45);
+        }
+
+        body {
+            margin: 0;
+            font-family: Inter, Arial, sans-serif;
+            color: var(--text);
+            background:
+                radial-gradient(circle at top left, rgba(56, 189, 248, 0.18), transparent 28%),
+                radial-gradient(circle at top right, rgba(139, 92, 246, 0.18), transparent 32%),
+                linear-gradient(180deg, #020617 0%, #0b1220 45%, #111827 100%);
+            min-height: 100vh;
+        }
+
+        .page {
+            max-width: 1380px;
+            margin: 0 auto;
+            padding: 28px 20px 42px;
+        }
+
+        .hero {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 20px;
+            flex-wrap: wrap;
+            margin-bottom: 24px;
+        }
+
+        .hero-left h1 {
+            margin: 0;
+            font-size: 34px;
+            line-height: 1.15;
+            font-weight: 800;
+            letter-spacing: 0.3px;
+        }
+
+        .hero-left p {
+            margin: 10px 0 0;
+            color: var(--muted);
+            font-size: 15px;
+            line-height: 1.6;
+            max-width: 760px;
+        }
+
+        .hero-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .chip {
+            padding: 10px 14px;
+            border-radius: 999px;
+            border: 1px solid rgba(56, 189, 248, 0.25);
+            background: rgba(14, 165, 233, 0.10);
+            color: #c4f1ff;
+            font-weight: 700;
+            font-size: 13px;
+        }
+
+        button {
+            border: none;
+            border-radius: 14px;
+            padding: 12px 18px;
+            font-size: 14px;
+            font-weight: 800;
+            cursor: pointer;
+            transition: transform 0.18s ease, opacity 0.18s ease, box-shadow 0.18s ease;
+        }
+
+        button:hover {
+            transform: translateY(-1px);
+            opacity: 0.96;
+        }
+
+        .secondary-btn {
+            color: #dbeafe;
+            background: rgba(30, 41, 59, 0.9);
+            border: 1px solid rgba(148, 163, 184, 0.20);
+            box-shadow: var(--shadow);
+        }
+
+        .primary-btn {
+            color: white;
+            background: linear-gradient(135deg, #2563eb, #7c3aed);
+            box-shadow: 0 12px 30px rgba(59, 130, 246, 0.30);
+        }
+
+        .layout {
+            display: grid;
+            grid-template-columns: 1.65fr 1fr;
+            gap: 22px;
+        }
+
+        .stack {
+            display: flex;
+            flex-direction: column;
+            gap: 22px;
+        }
+
+        .card {
+            background: linear-gradient(180deg, rgba(15, 23, 42, 0.96), rgba(15, 23, 42, 0.82));
+            border: 1px solid var(--border);
+            border-radius: 22px;
+            box-shadow: var(--shadow);
+            padding: 22px;
+            backdrop-filter: blur(8px);
+        }
+
+        .card-title-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 14px;
+            flex-wrap: wrap;
+            margin-bottom: 18px;
+        }
+
+        .card-title {
+            margin: 0;
+            font-size: 20px;
+            font-weight: 800;
+            color: #f8fafc;
+        }
+
+        .card-subtitle {
+            color: var(--muted);
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+        }
+
+        .summary-card {
+            position: relative;
+            overflow: hidden;
+            border-radius: 18px;
+            min-height: 132px;
+            padding: 18px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
+        }
+
+        .summary-card::after {
+            content: "";
+            position: absolute;
+            right: -20px;
+            top: -20px;
+            width: 90px;
+            height: 90px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.08);
+        }
+
+        .processed-card { background: linear-gradient(135deg, #14532d, #22c55e); }
+        .failed-card { background: linear-gradient(135deg, #7f1d1d, #ef4444); }
+        .duplicate-card { background: linear-gradient(135deg, #78350f, #f59e0b); }
+        .publisher-success-card { background: linear-gradient(135deg, #0f766e, #14b8a6); }
+        .publisher-failure-card { background: linear-gradient(135deg, #7c2d12, #f97316); }
+        .dlq-card { background: linear-gradient(135deg, #4c1d95, #8b5cf6); }
+
+        .summary-label {
+            font-size: 13px;
+            font-weight: 800;
+            opacity: 0.95;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+        }
+
+        .summary-value {
+            font-size: 36px;
+            font-weight: 900;
+            line-height: 1;
+            margin: 10px 0;
+        }
+
+        .summary-foot {
+            font-size: 12px;
+            opacity: 0.94;
+            line-height: 1.5;
+            max-width: 230px;
+        }
+
+        .section-divider {
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(148,163,184,0.35), transparent);
+            margin: 22px 0;
+        }
+
+        .metric-block {
+            margin-top: 8px;
+        }
+
+        .metric-row {
+            margin-bottom: 20px;
+        }
+
+        .metric-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 8px;
+            font-size: 14px;
+            font-weight: 800;
+            color: #dbeafe;
+        }
+
+        .metric-track {
+            width: 100%;
+            height: 16px;
+            background: rgba(148, 163, 184, 0.16);
+            border-radius: 999px;
+            overflow: hidden;
+            border: 1px solid rgba(148, 163, 184, 0.10);
+        }
+
+        .metric-fill {
+            height: 100%;
+            min-width: 0;
+            border-radius: 999px;
+            transition: width 0.35s ease;
+        }
+
+        .fill-green { background: linear-gradient(90deg, #16a34a, #22c55e); }
+        .fill-red { background: linear-gradient(90deg, #dc2626, #ef4444); }
+        .fill-amber { background: linear-gradient(90deg, #d97706, #f59e0b); }
+        .fill-teal { background: linear-gradient(90deg, #0f766e, #14b8a6); }
+        .fill-orange { background: linear-gradient(90deg, #c2410c, #f97316); }
+        .fill-violet { background: linear-gradient(90deg, #6d28d9, #8b5cf6); }
+
+        .status-list {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .status-item {
+            border-radius: 18px;
+            background: rgba(15, 23, 42, 0.72);
+            border: 1px solid rgba(148, 163, 184, 0.14);
+            padding: 16px;
+        }
+
+        .status-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 14px;
+            margin-bottom: 8px;
+        }
+
+        .status-name {
+            font-size: 15px;
+            font-weight: 800;
+            color: #f8fafc;
+        }
+
+        .status-pill {
+            padding: 6px 10px;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 900;
+            letter-spacing: 0.4px;
+        }
+
+        .up {
+            color: #dcfce7;
+            background: rgba(34, 197, 94, 0.18);
+            border: 1px solid rgba(34, 197, 94, 0.28);
+        }
+
+        .down {
+            color: #fee2e2;
+            background: rgba(239, 68, 68, 0.18);
+            border: 1px solid rgba(239, 68, 68, 0.28);
+        }
+
+        .unknown {
+            color: #e2e8f0;
+            background: rgba(148, 163, 184, 0.14);
+            border: 1px solid rgba(148, 163, 184, 0.20);
+        }
+
+        .status-url {
+            color: var(--muted);
+            font-size: 13px;
+            word-break: break-all;
+            line-height: 1.5;
+        }
+
+        .status-url strong {
+            color: #dbeafe;
+        }
+
+        .info-panel {
+            margin-top: 18px;
+            border-radius: 18px;
+            padding: 16px;
+            background: linear-gradient(180deg, rgba(30, 41, 59, 0.78), rgba(15, 23, 42, 0.72));
+            border: 1px solid rgba(148, 163, 184, 0.16);
+            color: #cbd5e1;
+            font-size: 14px;
+            line-height: 1.7;
+        }
+
+        .info-panel b {
+            color: #f8fafc;
+        }
+
+        .last-updated {
+            margin-top: 16px;
+            color: var(--muted);
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        .error-box {
+            margin-top: 16px;
+            padding: 12px 14px;
+            border-radius: 14px;
+            background: rgba(127, 29, 29, 0.35);
+            border: 1px solid rgba(239, 68, 68, 0.28);
+            color: #fecaca;
+            display: none;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .mini-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 14px;
+            margin-top: 16px;
+        }
+
+        .mini-stat {
+            border-radius: 16px;
+            padding: 14px;
+            background: rgba(15, 23, 42, 0.72);
+            border: 1px solid rgba(148, 163, 184, 0.14);
+        }
+
+        .mini-stat-label {
+            color: var(--muted);
+            font-size: 12px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .mini-stat-value {
+            margin-top: 6px;
+            font-size: 24px;
+            font-weight: 900;
+            color: #f8fafc;
+        }
+
+        @media (max-width: 1080px) {
+            .layout { grid-template-columns: 1fr; }
+        }
+
+        @media (max-width: 820px) {
+            .summary-grid { grid-template-columns: 1fr; }
+            .mini-grid { grid-template-columns: 1fr; }
+            .hero-left h1 { font-size: 28px; }
+        }
+    </style>
+</head>
+<body>
+<div class="page">
+    <div class="hero">
+        <div class="hero-left">
+            <h1>Retail Device Platform Control Center</h1>
+            <p>
+                Unified operational dashboard for ingestion, publishing, inventory processing, retry behavior,
+                idempotency outcomes, dead-letter visibility, and service health across the retail IoT event platform.
+            </p>
+        </div>
+
+        <div class="hero-actions">
+            <div class="chip">Multi-Device Event Observability</div>
+            <button class="secondary-btn" onclick="toggleAutoRefresh()">
+                <span id="autoRefreshText">Auto Refresh: OFF</span>
+            </button>
+            <button class="primary-btn" onclick="loadDashboard()">Refresh Now</button>
+        </div>
+    </div>
+
+    <div class="layout">
+        <div class="stack">
+            <div class="card">
+                <div class="card-title-row">
+                    <div>
+                        <h2 class="card-title">Inventory Processing Metrics</h2>
+                        <div class="card-subtitle">Downstream processing and idempotency statistics</div>
+                    </div>
+                </div>
+
+                <div class="summary-grid">
+                    <div class="summary-card processed-card">
+                        <div class="summary-label">Processed Events</div>
+                        <div class="summary-value" id="processedCount">0</div>
+                        <div class="summary-foot">Successfully persisted and processed by inventory-service</div>
+                    </div>
+
+                    <div class="summary-card failed-card">
+                        <div class="summary-label">Failed Events</div>
+                        <div class="summary-value" id="failedCount">0</div>
+                        <div class="summary-foot">Failures during downstream event processing</div>
+                    </div>
+
+                    <div class="summary-card duplicate-card">
+                        <div class="summary-label">Duplicate Events</div>
+                        <div class="summary-value" id="duplicateCount">0</div>
+                        <div class="summary-foot">Blocked by idempotency checks using eventId</div>
+                    </div>
+                </div>
+
+                <div class="metric-block">
+                    <div class="metric-row">
+                        <div class="metric-header">
+                            <span>Processed Events</span>
+                            <span id="processedLabel">0</span>
+                        </div>
+                        <div class="metric-track">
+                            <div id="processedBar" class="metric-fill fill-green" style="width: 0%"></div>
+                        </div>
+                    </div>
+
+                    <div class="metric-row">
+                        <div class="metric-header">
+                            <span>Failed Events</span>
+                            <span id="failedLabel">0</span>
+                        </div>
+                        <div class="metric-track">
+                            <div id="failedBar" class="metric-fill fill-red" style="width: 0%"></div>
+                        </div>
+                    </div>
+
+                    <div class="metric-row">
+                        <div class="metric-header">
+                            <span>Duplicate Events</span>
+                            <span id="duplicateLabel">0</span>
+                        </div>
+                        <div class="metric-track">
+                            <div id="duplicateBar" class="metric-fill fill-amber" style="width: 0%"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section-divider"></div>
+
+                <div class="card-title-row" style="margin-top:0;">
+                    <div>
+                        <h2 class="card-title">Publisher Reliability Metrics</h2>
+                        <div class="card-subtitle">Retry, publish outcome, and DLQ visibility from ingestion-service</div>
+                    </div>
+                </div>
+
+                <div class="summary-grid">
+                    <div class="summary-card publisher-success-card">
+                        <div class="summary-label">Published Success</div>
+                        <div class="summary-value" id="publishedSuccessCount">0</div>
+                        <div class="summary-foot">Events successfully published to inventory-service</div>
+                    </div>
+
+                    <div class="summary-card publisher-failure-card">
+                        <div class="summary-label">Published Failures</div>
+                        <div class="summary-value" id="publishedFailureCount">0</div>
+                        <div class="summary-foot">Publish attempts failed after resilience handling</div>
+                    </div>
+
+                    <div class="summary-card dlq-card">
+                        <div class="summary-label">DLQ Count</div>
+                        <div class="summary-value" id="dlqCount">0</div>
+                        <div class="summary-foot">Events redirected to dead-letter queue for later reprocessing</div>
+                    </div>
+                </div>
+
+                <div class="metric-block">
+                    <div class="metric-row">
+                        <div class="metric-header">
+                            <span>Published Success</span>
+                            <span id="publishedSuccessLabel">0</span>
+                        </div>
+                        <div class="metric-track">
+                            <div id="publishedSuccessBar" class="metric-fill fill-teal" style="width: 0%"></div>
+                        </div>
+                    </div>
+
+                    <div class="metric-row">
+                        <div class="metric-header">
+                            <span>Published Failures</span>
+                            <span id="publishedFailureLabel">0</span>
+                        </div>
+                        <div class="metric-track">
+                            <div id="publishedFailureBar" class="metric-fill fill-orange" style="width: 0%"></div>
+                        </div>
+                    </div>
+
+                    <div class="metric-row">
+                        <div class="metric-header">
+                            <span>DLQ Count</span>
+                            <span id="dlqLabel">0</span>
+                        </div>
+                        <div class="metric-track">
+                            <div id="dlqBar" class="metric-fill fill-violet" style="width: 0%"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="last-updated" id="lastUpdated">Last updated: --</div>
+                <div class="error-box" id="errorBox"></div>
+            </div>
+        </div>
+
+        <div class="stack">
+            <div class="card">
+                <div class="card-title-row">
+                    <div>
+                        <h2 class="card-title">Service Health</h2>
+                        <div class="card-subtitle">Endpoint reachability and actuator health status</div>
+                    </div>
+                </div>
+
+                <div class="status-list">
+                    <div class="status-item">
+                        <div class="status-top">
+                            <div class="status-name">Ingestion Service</div>
+                            <div id="ingestionStatus" class="status-pill unknown">CHECKING</div>
+                        </div>
+                        <div class="status-url"><strong>Primary:</strong> http://localhost:8080/actuator/health</div>
+                        <div class="status-url"><strong>Fallback:</strong> http://localhost:8080/publisher/metrics</div>
+                    </div>
+
+                    <div class="status-item">
+                        <div class="status-top">
+                            <div class="status-name">Inventory Service</div>
+                            <div id="inventoryStatus" class="status-pill unknown">CHECKING</div>
+                        </div>
+                        <div class="status-url"><strong>Primary:</strong> http://localhost:8081/actuator/health</div>
+                        <div class="status-url"><strong>Fallback:</strong> http://localhost:8081/inventory/metrics</div>
+                    </div>
+                </div>
+
+                <div class="mini-grid">
+                    <div class="mini-stat">
+                        <div class="mini-stat-label">Inventory Endpoint</div>
+                        <div class="mini-stat-value" id="inventoryMetricsState">--</div>
+                    </div>
+                    <div class="mini-stat">
+                        <div class="mini-stat-label">Publisher Endpoint</div>
+                        <div class="mini-stat-value" id="publisherMetricsState">--</div>
+                    </div>
+                </div>
+
+                <div class="info-panel">
+                    <b>How to read this dashboard</b><br><br>
+                    <b>Processed Events</b> should increase when valid events are successfully consumed by inventory-service.<br><br>
+                    <b>Failed Events</b> increase when downstream processing fails.<br><br>
+                    <b>Duplicate Events</b> increase when the same eventId is received again and idempotency blocks it.<br><br>
+                    <b>Published Success / Failure / DLQ</b> reflect the publisher-side behavior in ingestion-service before and during delivery to inventory-service.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const inventoryMetricsUrl = "http://localhost:8081/inventory/metrics";
+    const publisherMetricsUrl = "http://localhost:8080/publisher/metrics";
+
+    const healthUrls = {
+        ingestion: [
+            "http://localhost:8080/actuator/health",
+            "http://localhost:8080/publisher/metrics"
+        ],
+        inventory: [
+            "http://localhost:8081/actuator/health",
+            "http://localhost:8081/inventory/metrics"
+        ]
+    };
+
+    let autoRefreshEnabled = false;
+    let autoRefreshHandle = null;
+
+    async function loadDashboard() {
+        hideError();
+
+        await Promise.all([
+            loadInventoryMetrics(),
+            loadPublisherMetrics(),
+            loadHealth()
+        ]);
+
+        updateLastUpdated();
+    }
+
+    function getMetricValue(data, keys) {
+        for (const key of keys) {
+            if (data[key] !== undefined && data[key] !== null && !Number.isNaN(Number(data[key]))) {
+                return Number(data[key]);
+            }
+        }
+        return 0;
+    }
+
+    async function loadInventoryMetrics() {
+        try {
+            const response = await fetch(inventoryMetricsUrl);
+            if (!response.ok) {
+                throw new Error("Inventory metrics endpoint returned HTTP " + response.status);
+            }
+
+            const data = await response.json();
+
+            const processed = getMetricValue(data, [
+                "processedEvents",
+                "processed",
+                "processedCount",
+                "successCount",
+                "successfulEvents"
+            ]);
+
+            const failed = getMetricValue(data, [
+                "failedEvents",
+                "failed",
+                "failureCount",
+                "failedCount",
+                "errorCount"
+            ]);
+
+            const duplicate = getMetricValue(data, [
+                "duplicateEvents",
+                "duplicates",
+                "duplicateCount",
+                "ignoredDuplicates"
+            ]);
+
+            document.getElementById("processedCount").textContent = processed;
+            document.getElementById("failedCount").textContent = failed;
+            document.getElementById("duplicateCount").textContent = duplicate;
+
+            document.getElementById("processedLabel").textContent = processed;
+            document.getElementById("failedLabel").textContent = failed;
+            document.getElementById("duplicateLabel").textContent = duplicate;
+
+            const maxValue = Math.max(processed, failed, duplicate, 1);
+            updateBar("processedBar", processed, maxValue);
+            updateBar("failedBar", failed, maxValue);
+            updateBar("duplicateBar", duplicate, maxValue);
+
+            document.getElementById("inventoryMetricsState").textContent = "LIVE";
+        } catch (error) {
+            document.getElementById("inventoryMetricsState").textContent = "DOWN";
+            showError("Failed to load inventory metrics: " + error.message);
+        }
+    }
+
+    async function loadPublisherMetrics() {
+        try {
+            const response = await fetch(publisherMetricsUrl);
+            if (!response.ok) {
+                throw new Error("Publisher metrics endpoint returned HTTP " + response.status);
+            }
+
+            const data = await response.json();
+
+            const publishedSuccess = getMetricValue(data, [
+                "publishedSuccessCount",
+                "publishedSuccess",
+                "successCount"
+            ]);
+
+            const publishedFailure = getMetricValue(data, [
+                "publishedFailureCount",
+                "publishedFailure",
+                "failureCount",
+                "failedCount"
+            ]);
+
+            const dlq = getMetricValue(data, [
+                "dlqCount",
+                "deadLetterCount",
+                "dlq"
+            ]);
+
+            document.getElementById("publishedSuccessCount").textContent = publishedSuccess;
+            document.getElementById("publishedFailureCount").textContent = publishedFailure;
+            document.getElementById("dlqCount").textContent = dlq;
+
+            document.getElementById("publishedSuccessLabel").textContent = publishedSuccess;
+            document.getElementById("publishedFailureLabel").textContent = publishedFailure;
+            document.getElementById("dlqLabel").textContent = dlq;
+
+            const maxValue = Math.max(publishedSuccess, publishedFailure, dlq, 1);
+            updateBar("publishedSuccessBar", publishedSuccess, maxValue);
+            updateBar("publishedFailureBar", publishedFailure, maxValue);
+            updateBar("dlqBar", dlq, maxValue);
+
+            document.getElementById("publisherMetricsState").textContent = "LIVE";
+        } catch (error) {
+            document.getElementById("publisherMetricsState").textContent = "DOWN";
+            showError("Failed to load publisher metrics: " + error.message);
+        }
+    }
+
+    async function loadHealth() {
+        await Promise.all([
+            checkHealth(healthUrls.ingestion, "ingestionStatus"),
+            checkHealth(healthUrls.inventory, "inventoryStatus")
+        ]);
+    }
+
+    async function checkHealth(urls, elementId) {
+        const element = document.getElementById(elementId);
+
+        for (const url of urls) {
+            try {
+                const response = await fetch(url);
+                if (!response.ok) {
+                    continue;
+                }
+
+                let statusText = "UP";
+                const contentType = response.headers.get("content-type") || "";
+
+                if (contentType.includes("application/json")) {
+                    const data = await response.json();
+                    const status = String(data.status || data.health || "UP").toUpperCase();
+                    statusText = status.includes("UP") || status.includes("OK") ? "UP" : status;
+                } else {
+                    const text = (await response.text()).trim().toUpperCase();
+                    statusText = text.includes("UP") || text.includes("OK") || text.includes("HEALTHY") ? "UP" : "UP";
+                }
+
+                element.textContent = statusText;
+                element.className = "status-pill " + (statusText === "UP" ? "up" : "down");
+                return;
+            } catch (error) {
+                // try next endpoint
+            }
+        }
+
+        element.textContent = "DOWN";
+        element.className = "status-pill down";
+    }
+
+    function updateBar(barId, value, maxValue) {
+        const bar = document.getElementById(barId);
+        const width = value === 0 ? 0 : Math.max((value / maxValue) * 100, 8);
+        bar.style.width = width + "%";
+    }
+
+    function updateLastUpdated() {
+        const now = new Date();
+        document.getElementById("lastUpdated").textContent = "Last updated: " + now.toLocaleString();
+    }
+
+    function showError(message) {
+        const box = document.getElementById("errorBox");
+        if (box.style.display === "block" && box.textContent.includes(message)) {
+            return;
+        }
+        box.style.display = "block";
+        box.textContent = message;
+    }
+
+    function hideError() {
+        const box = document.getElementById("errorBox");
+        box.style.display = "none";
+        box.textContent = "";
+    }
+
+    function toggleAutoRefresh() {
+        autoRefreshEnabled = !autoRefreshEnabled;
+        const label = document.getElementById("autoRefreshText");
+
+        if (autoRefreshEnabled) {
+            label.textContent = "Auto Refresh: ON";
+            autoRefreshHandle = setInterval(loadDashboard, 5000);
+        } else {
+            label.textContent = "Auto Refresh: OFF";
+            clearInterval(autoRefreshHandle);
+            autoRefreshHandle = null;
+        }
+    }
+    
+    loadDashboard();
+</script>
+</body>
+</html>

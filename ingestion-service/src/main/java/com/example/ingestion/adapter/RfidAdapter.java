@@ -16,161 +16,161 @@ import com.example.common.model.CommonEvent;
 @Component
 public class RfidAdapter implements DeviceEventAdapter {
 
-    private static final Logger log = LoggerFactory.getLogger(RfidAdapter.class);
+	private static final Logger log = LoggerFactory.getLogger(RfidAdapter.class);
 
-    @Override
-    public boolean supports(String vendorType) {
-        return vendorType != null && "RFID".equalsIgnoreCase(vendorType);
-    }
+	@Override
+	public boolean supports(String vendorType) {
+		return vendorType != null && "RFID".equalsIgnoreCase(vendorType);
+	}
 
-    @Override
-    public CommonEvent adapt(Map<String, Object> payload) {
+	@Override
+	public CommonEvent adapt(Map<String, Object> payload) {
 
-        if (payload == null || payload.isEmpty()) {
-            throw new IllegalArgumentException("RFID payload cannot be null or empty");
-        }
+		if (payload == null || payload.isEmpty()) {
+			throw new IllegalArgumentException("RFID payload cannot be null or empty");
+		}
 
-        // ✅ Required fields (fail fast)
-        String tagId = requireString(payload, "tagId");
-        String zone = requireString(payload, "zone");
+		// Required fields (fail fast)
+		String tagId = requireString(payload, "tagId");
+		String zone = requireString(payload, "zone");
 
-        // Optional fields
-        String epc = getString(payload, "epc");
-        String readerId = getString(payload, "readerId");
-        String eventType = getString(payload, "eventType");
-        Integer antennaPort = getInteger(payload, "antennaPort");
-        Integer readCount = getInteger(payload, "readCount");
-        Double rssi = getDouble(payload, "rssi");
+		// Optional fields
+		String epc = getString(payload, "epc");
+		String readerId = getString(payload, "readerId");
+		String eventType = getString(payload, "eventType");
+		Integer antennaPort = getInteger(payload, "antennaPort");
+		Integer readCount = getInteger(payload, "readCount");
+		Double rssi = getDouble(payload, "rssi");
 
-        LocalDateTime eventTimestamp = parseTimestamp(payload.get("timestamp"));
+		LocalDateTime eventTimestamp = parseTimestamp(payload.get("timestamp"));
 
-        // Nested location
-        Map<String, Object> locationMap = getMap(payload, "location");
-        String storeId = getString(locationMap, "storeId");
-        String aisle = getString(locationMap, "aisle");
+		// Nested location
+		Map<String, Object> locationMap = getMap(payload, "location");
+		String storeId = getString(locationMap, "storeId");
+		String aisle = getString(locationMap, "aisle");
 
-        log.info("Adapting RFID payload for tagId={}, zone={}", tagId, zone);
+		log.info("Adapting RFID payload for tagId={}, zone={}", tagId, zone);
 
-        // ✅ Canonical payload
-        Map<String, Object> canonicalPayload = new HashMap<>();
-        canonicalPayload.put("tagId", tagId);
-        canonicalPayload.put("epc", epc);
-        canonicalPayload.put("readerId", readerId);
-        canonicalPayload.put("antennaPort", antennaPort);
-        canonicalPayload.put("zone", zone);
-        canonicalPayload.put("eventType", eventType != null ? eventType : "SCAN");
-        canonicalPayload.put("rssi", rssi);
-        canonicalPayload.put("readCount", readCount);
-        canonicalPayload.put("storeId", storeId);
-        canonicalPayload.put("aisle", aisle);
+		// Canonical payload
+		Map<String, Object> canonicalPayload = new HashMap<>();
+		canonicalPayload.put("tagId", tagId);
+		canonicalPayload.put("epc", epc);
+		canonicalPayload.put("readerId", readerId);
+		canonicalPayload.put("antennaPort", antennaPort);
+		canonicalPayload.put("zone", zone);
+		canonicalPayload.put("eventType", eventType != null ? eventType : "SCAN");
+		canonicalPayload.put("rssi", rssi);
+		canonicalPayload.put("readCount", readCount);
+		canonicalPayload.put("storeId", storeId);
+		canonicalPayload.put("aisle", aisle);
 
-        // ✅ Schema versioning (important for future Kafka evolution)
-        canonicalPayload.put("schemaVersion", "v1");
-        
-        Object simulateFailure = payload.get("simulateFailure");
-        canonicalPayload.put("simulateFailure", simulateFailure);
+		// Schema versioning (important for future Kafka evolution)
+		canonicalPayload.put("schemaVersion", "v1");
 
-        // Optional: trace/debug (can remove later if payload is huge)
-        // canonicalPayload.put("rawEvent", payload);
+		Object simulateFailure = payload.get("simulateFailure");
+		canonicalPayload.put("simulateFailure", simulateFailure);
 
-        // ✅ Build CommonEvent
-        CommonEvent event = new CommonEvent();
-        event.setEventId(UUID.randomUUID().toString());
+		// Optional: trace/debug (can remove later if payload is huge)
+		// canonicalPayload.put("rawEvent", payload);
 
-        // Standard rule: deviceId = primary identifier
-        event.setDeviceId(tagId);
+		// Build CommonEvent
+		CommonEvent event = new CommonEvent();
+		event.setEventId(UUID.randomUUID().toString());
 
-        event.setEventType(eventType != null ? eventType : "RFID_SCAN");
-        event.setTimestamp(eventTimestamp);
-        event.setPayload(canonicalPayload);
+		// Standard rule: deviceId = primary identifier
+		event.setDeviceId(tagId);
 
-        return event;
-    }
+		event.setEventType(eventType != null ? eventType : "RFID_SCAN");
+		event.setTimestamp(eventTimestamp);
+		event.setPayload(canonicalPayload);
 
-    // =========================
-    // Helper Methods
-    // =========================
+		return event;
+	}
 
-    private String requireString(Map<String, Object> map, String key) {
-        String value = getString(map, key);
-        if (value == null || value.isBlank()) {
-            throw new IllegalArgumentException("Missing required field: " + key);
-        }
-        return value;
-    }
+	// =========================
+	// Helper Methods
+	// =========================
 
-    private String getString(Map<String, Object> map, String key) {
-        if (map == null || !map.containsKey(key) || map.get(key) == null) {
-            return null;
-        }
-        return String.valueOf(map.get(key));
-    }
+	private String requireString(Map<String, Object> map, String key) {
+		String value = getString(map, key);
+		if (value == null || value.isBlank()) {
+			throw new IllegalArgumentException("Missing required field: " + key);
+		}
+		return value;
+	}
 
-    private Integer getInteger(Map<String, Object> map, String key) {
-        if (map == null || !map.containsKey(key) || map.get(key) == null) {
-            return null;
-        }
+	private String getString(Map<String, Object> map, String key) {
+		if (map == null || !map.containsKey(key) || map.get(key) == null) {
+			return null;
+		}
+		return String.valueOf(map.get(key));
+	}
 
-        Object value = map.get(key);
-        if (value instanceof Number number) {
-            return number.intValue();
-        }
+	private Integer getInteger(Map<String, Object> map, String key) {
+		if (map == null || !map.containsKey(key) || map.get(key) == null) {
+			return null;
+		}
 
-        try {
-            return Integer.parseInt(String.valueOf(value));
-        } catch (NumberFormatException e) {
-            throw new IllegalArgumentException("Invalid integer value for key: " + key);
-        }
-    }
+		Object value = map.get(key);
+		if (value instanceof Number number) {
+			return number.intValue();
+		}
 
-    private Double getDouble(Map<String, Object> map, String key) {
-        if (map == null || !map.containsKey(key) || map.get(key) == null) {
-            return null;
-        }
+		try {
+			return Integer.parseInt(String.valueOf(value));
+		} catch (NumberFormatException e) {
+			throw new IllegalArgumentException("Invalid integer value for key: " + key);
+		}
+	}
 
-        Object value = map.get(key);
-        if (value instanceof Number number) {
-            return number.doubleValue();
-        }
+	private Double getDouble(Map<String, Object> map, String key) {
+		if (map == null || !map.containsKey(key) || map.get(key) == null) {
+			return null;
+		}
 
-        try {
-            return Double.parseDouble(String.valueOf(value));
-        } catch (NumberFormatException e) {
-            throw new IllegalArgumentException("Invalid double value for key: " + key);
-        }
-    }
+		Object value = map.get(key);
+		if (value instanceof Number number) {
+			return number.doubleValue();
+		}
 
-    @SuppressWarnings("unchecked")
-    private Map<String, Object> getMap(Map<String, Object> map, String key) {
-        if (map == null || !map.containsKey(key) || map.get(key) == null) {
-            return Map.of();
-        }
+		try {
+			return Double.parseDouble(String.valueOf(value));
+		} catch (NumberFormatException e) {
+			throw new IllegalArgumentException("Invalid double value for key: " + key);
+		}
+	}
 
-        Object value = map.get(key);
-        if (value instanceof Map<?, ?> nestedMap) {
-            return (Map<String, Object>) nestedMap;
-        }
+	@SuppressWarnings("unchecked")
+	private Map<String, Object> getMap(Map<String, Object> map, String key) {
+		if (map == null || !map.containsKey(key) || map.get(key) == null) {
+			return Map.of();
+		}
 
-        throw new IllegalArgumentException("Invalid nested map for key: " + key);
-    }
+		Object value = map.get(key);
+		if (value instanceof Map<?, ?> nestedMap) {
+			return (Map<String, Object>) nestedMap;
+		}
 
-    private LocalDateTime parseTimestamp(Object timestampValue) {
+		throw new IllegalArgumentException("Invalid nested map for key: " + key);
+	}
 
-        if (timestampValue == null) {
-            log.warn("Missing timestamp, using system time");
-            return LocalDateTime.now();
-        }
+	private LocalDateTime parseTimestamp(Object timestampValue) {
 
-        String timestamp = String.valueOf(timestampValue);
+		if (timestampValue == null) {
+			log.warn("Missing timestamp, using system time");
+			return LocalDateTime.now();
+		}
 
-        try {
-            return OffsetDateTime.parse(timestamp).toLocalDateTime();
-        } catch (DateTimeParseException e) {
-            try {
-                return LocalDateTime.parse(timestamp);
-            } catch (DateTimeParseException ex) {
-                throw new IllegalArgumentException("Invalid timestamp format: " + timestamp);
-            }
-        }
-    }
+		String timestamp = String.valueOf(timestampValue);
+
+		try {
+			return OffsetDateTime.parse(timestamp).toLocalDateTime();
+		} catch (DateTimeParseException e) {
+			try {
+				return LocalDateTime.parse(timestamp);
+			} catch (DateTimeParseException ex) {
+				throw new IllegalArgumentException("Invalid timestamp format: " + timestamp);
+			}
+		}
+	}
 }
