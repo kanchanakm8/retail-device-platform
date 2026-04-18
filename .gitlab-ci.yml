@@ -1,0 +1,15 @@
+stages:
+  - build
+  - test
+
+build:
+  stage: build
+  image: maven:3.9.6-eclipse-temurin-17
+  script:
+    - mvn clean compile
+
+test:
+  stage: test
+  image: maven:3.9.6-eclipse-temurin-17
+  script:
+    - mvn test
