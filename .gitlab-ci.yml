@@ -1,6 +1,21 @@
 stages:
+  - validate
   - build
   - test
+  - package
+
+variables:
+  MAVEN_OPTS: "-Dmaven.repo.local=.m2/repository"
+
+cache:
+  paths:
+    - .m2/repository
+
+validate:
+  stage: validate
+  image: maven:3.9.6-eclipse-temurin-17
+  script:
+    - mvn validate
 
 build:
   stage: build
@@ -13,3 +28,13 @@ test:
   image: maven:3.9.6-eclipse-temurin-17
   script:
     - mvn test
+
+package:
+  stage: package
+  image: maven:3.9.6-eclipse-temurin-17
+  script:
+    - mvn package
+  artifacts:
+    paths:
+      - ingestion-service/target/*.jar
+      - inventory-service/target/*.jar
