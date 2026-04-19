@@ -15,16 +15,17 @@ public class PublisherMetricsController {
 
     private final RestEventPublisher restEventPublisher;
 
-    public PublisherMetricsController(RestEventPublisher restEventPublisher) {
-        this.restEventPublisher = restEventPublisher;
+    public PublisherMetricsController(RestEventPublisher restEventPublisher_org) {
+        this.restEventPublisher = restEventPublisher_org;
     }
 
     @GetMapping("/publisher/metrics")
-    public Map<String, Integer> getPublisherMetrics() {
-        Map<String, Integer> metrics = new HashMap<>();
+    public Map<String, Object> getPublisherMetrics() {
+        Map<String, Object> metrics = new HashMap<>();
         metrics.put("publishedSuccessCount", restEventPublisher.getPublishedSuccessCount());
         metrics.put("publishedFailureCount", restEventPublisher.getPublishedFailureCount());
-        metrics.put("dlqCount", restEventPublisher.getDlqCount());
+        metrics.put("totalDlqRoutedCount", restEventPublisher.getTotalDlqRoutedCount());
+        metrics.put("currentDlqBacklogCount", restEventPublisher.getCurrentDlqBacklogCount());
         return metrics;
     }
 }
