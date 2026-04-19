@@ -75,7 +75,10 @@ public class RfidAdapter implements DeviceEventAdapter {
 
 		// Build CommonEvent
 		CommonEvent event = new CommonEvent();
-		event.setEventId(UUID.randomUUID().toString());
+		String eventId = payload.get("eventId") != null
+		        ? String.valueOf(payload.get("eventId"))
+		        : UUID.randomUUID().toString();
+		event.setEventId(eventId);
 
 		// Standard rule: deviceId = primary identifier
 		event.setDeviceId(tagId);
