@@ -206,6 +206,75 @@ POST /api/dlq/{eventId}/reprocess
 
 ---
 
+## 💀 Dead Letter Queue (DLQ) - Lifecycle Tracking
+
+### 🆕 Status Enum
+
+
+FAILED
+REPROCESSING
+REPROCESSED_SUCCESS
+REPROCESSED_FAILED
+
+
+### 🆕 Additional Fields
+
+* `status`
+* `retryCount`
+* `lastRetriedAt`
+* `resolvedAt`
+* `lastError`
+
+---
+
+### 🔁 Reprocess Flow
+
+
+DLQ → REPROCESSING → SUCCESS / FAILED
+
+
+👉 DLQ entries are **NOT deleted** (audit requirement)
+
+---
+
+## 📊 Publisher Metrics (Enhanced)
+
+* `publishedSuccessCount`
+* `publishedFailureCount`
+* `totalDlqRoutedCount` (historical)
+* `currentDlqBacklogCount` (current)
+* `reprocessSuccessCount`
+* `reprocessFailureCount`
+
+---
+
+## 🧪 Metrics Dashboard
+
+**File:**
+
+
+metrix.html
+
+
+### Features
+
+* Publisher metrics visualization
+* Inventory metrics visualization
+* DLQ backlog vs historical tracking
+* Reprocess success/failure tracking
+* Auto-refresh dashboard
+
+---
+
+## 🚀 Future Architecture (Kafka)
+
+
+Ingestion → Kafka → Consumer → Processor → DB
+↓
+DLQ → Replay Service
+
+---
+
 ## 📊 Inventory Service
 
 ### Responsibilities

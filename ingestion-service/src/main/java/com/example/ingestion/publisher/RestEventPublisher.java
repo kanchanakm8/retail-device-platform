@@ -8,6 +8,7 @@ import org.springframework.web.client.RestTemplate;
 
 import com.example.common.model.CommonEvent;
 import com.example.ingestion.entity.DlqEventEntity;
+import com.example.ingestion.entity.DlqStatus;
 import com.example.ingestion.repository.DlqEventRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -25,6 +26,8 @@ public class RestEventPublisher implements EventPublisher {
     private int publishedSuccessCount = 0;
     private int publishedFailureCount = 0;
     private int totalDlqRoutedCount = 0;
+    private int reprocessSuccessCount = 0;
+    private int reprocessFailureCount = 0;
 
     // Retry fields
     private final int maxRetries = 3;
@@ -47,12 +50,27 @@ public class RestEventPublisher implements EventPublisher {
 
     @Override
     public void publish(CommonEvent event) {
-        log.info("Publisher payload = {}", event.getPayload());
+        publishInternal(event, false);
+    }
+
+    public void publishFromReprocess(CommonEvent event) {
+        publishInternal(event, true);
+    }
+
+    private void publishInternal(CommonEvent event, boolean reprocessFlow) {
+        log.info("Publishing eventId={}, reprocessFlow={}, payload={}",
+                event.getEventId(), reprocessFlow, event.getPayload());
 
         if (isCircuitOpen()) {
             log.warn("Circuit is OPEN. Skipping publish for eventId={}", event.getEventId());
+
+            if (reprocessFlow) {
+                reprocessFailureCount++;
+                throw new RuntimeException("Circuit is open. Reprocess failed for eventId=" + event.getEventId());
+            }
+
             sendToDeadLetterQueue(event, "Circuit is open. Downstream service temporarily unavailable");
-            return;
+            throw new RuntimeException("Circuit is open. Event moved to DLQ: " + event.getEventId());
         }
 
         int attempt = 0;
@@ -73,9 +91,13 @@ public class RestEventPublisher implements EventPublisher {
                 }
 
                 restTemplate.postForObject(inventoryServiceProcessUrl, event, String.class);
-                publishedSuccessCount++;
-                log.info("Successfully published eventId={}", event.getEventId());
 
+                publishedSuccessCount++;
+                if (reprocessFlow) {
+                    reprocessSuccessCount++;
+                }
+
+                log.info("Successfully published eventId={}, reprocessFlow={}", event.getEventId(), reprocessFlow);
                 resetCircuitBreaker();
                 return;
 
@@ -93,7 +115,7 @@ public class RestEventPublisher implements EventPublisher {
             }
         }
 
-        onPublishFailure(event, lastException);
+        onPublishFailure(event, lastException, reprocessFlow);
     }
 
     private boolean isCircuitOpen() {
@@ -105,7 +127,7 @@ public class RestEventPublisher implements EventPublisher {
         circuitOpenUntil = 0;
     }
 
-    private void onPublishFailure(CommonEvent event, Exception lastException) {
+    private void onPublishFailure(CommonEvent event, Exception lastException, boolean reprocessFlow) {
         failureCount++;
 
         log.error("All retries failed for eventId={}. failureCount={}", event.getEventId(), failureCount);
@@ -121,9 +143,14 @@ public class RestEventPublisher implements EventPublisher {
         }
 
         publishedFailureCount++;
-        sendToDeadLetterQueue(event, reason);
 
-        throw new RuntimeException("Event moved to DLQ after retry exhaustion: " + event.getEventId());
+        if (reprocessFlow) {
+            reprocessFailureCount++;
+            throw new RuntimeException("Reprocess publish failed for eventId=" + event.getEventId(), lastException);
+        }
+
+        sendToDeadLetterQueue(event, reason);
+        throw new RuntimeException("Event moved to DLQ after retry exhaustion: " + event.getEventId(), lastException);
     }
 
     private void sendToDeadLetterQueue(CommonEvent event, String reason) {
@@ -132,6 +159,11 @@ public class RestEventPublisher implements EventPublisher {
         dlq.setPayloadJson(convertObjectToJson(event));
         dlq.setReason(reason);
         dlq.setFailedAt(LocalDateTime.now());
+        dlq.setStatus(DlqStatus.FAILED);
+        dlq.setRetryCount(0);
+        dlq.setLastRetriedAt(null);
+        dlq.setResolvedAt(null);
+        dlq.setLastError(reason);
 
         dlqRepository.save(dlq);
         totalDlqRoutedCount++;
@@ -160,6 +192,14 @@ public class RestEventPublisher implements EventPublisher {
     }
 
     public long getCurrentDlqBacklogCount() {
-        return dlqRepository.count();
+        return dlqRepository.countByStatus(DlqStatus.FAILED);
+    }
+
+    public int getReprocessSuccessCount() {
+        return reprocessSuccessCount;
+    }
+
+    public int getReprocessFailureCount() {
+        return reprocessFailureCount;
     }
 }

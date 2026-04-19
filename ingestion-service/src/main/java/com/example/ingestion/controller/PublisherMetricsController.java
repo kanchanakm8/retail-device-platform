@@ -15,8 +15,8 @@ public class PublisherMetricsController {
 
     private final RestEventPublisher restEventPublisher;
 
-    public PublisherMetricsController(RestEventPublisher restEventPublisher_org) {
-        this.restEventPublisher = restEventPublisher_org;
+    public PublisherMetricsController(RestEventPublisher restEventPublisher) {
+        this.restEventPublisher = restEventPublisher;
     }
 
     @GetMapping("/publisher/metrics")
@@ -26,6 +26,8 @@ public class PublisherMetricsController {
         metrics.put("publishedFailureCount", restEventPublisher.getPublishedFailureCount());
         metrics.put("totalDlqRoutedCount", restEventPublisher.getTotalDlqRoutedCount());
         metrics.put("currentDlqBacklogCount", restEventPublisher.getCurrentDlqBacklogCount());
+        metrics.put("reprocessSuccessCount", restEventPublisher.getReprocessSuccessCount());
+        metrics.put("reprocessFailureCount", restEventPublisher.getReprocessFailureCount());
         return metrics;
     }
 }
