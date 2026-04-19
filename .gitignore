@@ -1,3 +1,13 @@
 target/
 *.class
 .DS_Store
+
+.classpath
+.project
+.settings/
+bin/
+
+**/.classpath
+**/.project
+**/.settings/
+**/bin/
